@@ -80,6 +80,60 @@ The system uses a file-based storage structure:
 - Transaction logging for audit purposes
 - Account status tracking (Active/Closed)
 
+## Sample Output
+
+██████   █████  ███    ██ ██   ██ ██ ███    ██  ██████      ███████ ██    ██ ███████ ████████ ███████ ███    ███ 
+██   ██ ██   ██ ████   ██ ██  ██  ██ ████   ██ ██           ██       ██  ██  ██         ██    ██      ████  ████ 
+██████  ███████ ██ ██  ██ █████   ██ ██ ██  ██ ██   ███     ███████   ████   ███████    ██    █████   ██ ████ ██ 
+██   ██ ██   ██ ██  ██ ██ ██  ██  ██ ██  ██ ██ ██    ██          ██    ██         ██    ██    ██      ██  ██  ██ 
+██████  ██   ██ ██   ████ ██   ██ ██ ██   ████  ██████      ███████    ██    ███████    ██    ███████ ██      ██ 
+
+                                                                                                  created by Skim
++==============================================+
+  Banking Management System - Session Info
++==============================================+
+  Session Time: Sat Dec  6 16:22:54 2025
+  Total Accounts: 3
++==============================================+
+
++========================================+
+| 1. Deposit    | 4. Create  Account     |
+| 2. Withdraw   | 5. Delete  Account     |
+| 3. Remittance | 0. Exit  System        |
++========================================+
+Please select (number or keyword): 1
+
++==================================================================+
+| No | Account No | Name       | Balance    | Type     | Status   |
++----+------------+------------+------------+----------+----------+
+|  1 |   28165204 |67          |    8434.00 |Savings   |Active    |
+|  2 |   88908888 |skim        |   22257.00 |Savings   |Active    |
++==================================================================+
+
+Enter account number (1-2) or 0 to enter account number directly: 1
+Enter PIN: 1234
+
++------------------------------------------------------------------+
+| Account No | Name      | PIN  | Balance    | Type     | Status   |
+|   28165204 |        67 | 1234 |    8434.00 | Savings  |  Active  |
++------------------------------------------------------------------+
+Deposit amount (Max RM50,000): RM123
+
++------------------------------------------------------------------+
+| Account No | Name      | PIN  | Balance    | Type     | Status   |
+|   28165204 |        67 | 1234 |    8557.00 | Savings  |  Active  |
++------------------------------------------------------------------+
+Deposit successful!
+
++========================================+
+| 1. Deposit    | 4. Create  Account     |
+| 2. Withdraw   | 5. Delete  Account     |
+| 3. Remittance | 0. Exit  System        |
++========================================+
+Please select (number or keyword): 0
+==============================================
+Thank you for using Banking System. Goodbye!
+
 ## Author
 
 Created by Skim
