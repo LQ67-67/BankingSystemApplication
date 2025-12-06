@@ -12,21 +12,6 @@ A comprehensive banking system written in C that provides account management, tr
 * **Audit Logging**: Complete transaction history tracking
 * **Data Persistence**: File-based storage system for account data
 
-## System Requirements
-
-* C compiler (GCC recommended)
-* Operating System: Windows, Linux, or macOS
-
-## Usage
-
-Run the compiled program:
-
-```bash
-./BankSystem
-```
-
-The system will create a `database` directory automatically to store account information and transaction logs.
-
 ## Account Operations
 
 ### Create Account
