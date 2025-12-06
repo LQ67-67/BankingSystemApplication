@@ -91,7 +91,7 @@ The system uses a file-based storage structure:
 
 ---
 
-## Sample Output（已重新排版）
+## Sample Output
 
 ```
 ██████   █████  ███    ██ ██   ██ ██ ███    ██  ██████      ███████ ██    ██ ███████ ████████ ███████ ███    ███ 
