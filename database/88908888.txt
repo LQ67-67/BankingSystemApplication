@@ -1,0 +1,7 @@
+Account No: 88908888
+Account Name: skim
+PIN: 1234
+Balance: 22257.00
+Status: 0
+Account Type: Savings
+ID Number: 112345

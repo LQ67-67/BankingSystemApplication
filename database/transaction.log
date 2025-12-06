@@ -1,0 +1,22 @@
+[Mon Nov  3 09:46:06 2025] create account - Account: 539609912
+[Mon Nov  3 09:54:40 2025] create account - Account: 28165204
+[Mon Nov  3 09:59:10 2025] deposit - Account: 28165204, Amount: RM6666.00
+[Mon Nov  3 09:59:30 2025] withdrawal - Account: 28165204, Amount: RM100.00
+[Mon Nov  3 09:59:36 2025] exit system
+[Mon Nov  3 10:08:28 2025] deposit - Account: 28165204, Amount: RM100.00
+[Mon Nov  3 10:08:45 2025] create account - Account: 88908888
+[Mon Nov  3 10:09:48 2025] deposit - Account: 88908888, Amount: RM5000.00
+[Mon Nov  3 10:10:32 2025] remittance - From: 88908888 to 28165204, Amount: RM1000.00, Fee: RM0.00
+[Mon Nov  3 11:41:14 2025] deposit - Account: 88908888, Amount: RM2222.00
+[Mon Nov  3 11:41:17 2025] exit system
+[Mon Nov  3 21:54:48 2025] deposit - Account: 28165204, Amount: RM500.00
+[Mon Nov  3 21:54:51 2025] exit system
+[Mon Nov  3 21:55:34 2025] deposit - Account: 28165204, Amount: RM2.00
+[Wed Nov  5 22:19:15 2025] exit system
+[Tue Nov 25 15:58:30 2025] deposit - Account: 88908888, Amount: RM12345.00
+[Tue Nov 25 15:58:33 2025] exit system
+[Tue Dec  2 14:43:25 2025] deposit - Account: 28165204, Amount: RM500.00
+[Tue Dec  2 14:43:28 2025] exit system
+[Tue Dec  2 15:38:41 2025] deposit - Account: 88908888, Amount: RM3456.00
+[Tue Dec  2 15:38:54 2025] remittance - From: 28165204 to 88908888, Amount: RM234.00, Fee: RM0.00
+[Tue Dec  2 15:38:56 2025] exit system
