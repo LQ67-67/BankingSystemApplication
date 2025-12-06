@@ -17,16 +17,6 @@ A comprehensive banking system written in C that provides account management, tr
 * C compiler (GCC recommended)
 * Operating System: Windows, Linux, or macOS
 
-## Installation
-
-1. Clone or download the project files
-2. Navigate to the project directory
-3. Compile the program:
-
-   ```bash
-   gcc BankSystem.c -o BankSystem
-   ```
-
 ## Usage
 
 Run the compiled program:
