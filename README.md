@@ -1,26 +1,26 @@
 # Banking Management System
 
-A comprehensive command-line banking system written in C, featuring secure account management, transaction processing, fee calculation, and audit logging.
+A comprehensive banking system written in C that provides account management, transactions, and audit logging capabilities.
 
 ## Features
 
-* **Account Management** – Create and delete accounts with unique auto-generated account numbers
-* **Secure Transactions** – Deposit, withdraw, and transfer funds safely
-* **PIN Protection** – 4-digit PIN verification for every transaction
-* **Account Types** – Supports *Savings* and *Current* accounts
-* **Transaction Fees** – Automatic fee calculation for cross-type transfers
-* **Audit Logging** – Full record of all operations and transactions
-* **Data Persistence** – File-based database for all account and log data
+* **Account Management**: Create and delete bank accounts with unique account numbers
+* **Secure Transactions**: Deposit, withdraw, and transfer money between accounts
+* **PIN Protection**: 4-digit PIN authentication for all transactions
+* **Account Types**: Support for Savings and Current accounts
+* **Transaction Fees**: Automatic fee calculation for transfers between different account types
+* **Audit Logging**: Complete transaction history tracking
+* **Data Persistence**: File-based storage system for account data
 
 ## System Requirements
 
 * C compiler (GCC recommended)
-* OS: Windows, Linux, or macOS
+* Operating System: Windows, Linux, or macOS
 
 ## Installation
 
-1. Clone or download this repository
-2. Navigate into the project directory
+1. Clone or download the project files
+2. Navigate to the project directory
 3. Compile the program:
 
    ```bash
@@ -29,64 +29,69 @@ A comprehensive command-line banking system written in C, featuring secure accou
 
 ## Usage
 
-Run the executable:
+Run the compiled program:
 
 ```bash
 ./BankSystem
 ```
 
-A `database` directory will automatically be created to store account files and transaction logs.
+The system will create a `database` directory automatically to store account information and transaction logs.
 
 ## Account Operations
 
-### ➤ Create Account
+### Create Account
 
-* Generates a unique 7–9 digit account number
-* Requires: Name, ID number, Account type, 4-digit PIN
-* Supports *Savings* and *Current* accounts
+* Generates unique 7-9 digit account numbers
+* Requires account holder name, ID number, account type, and 4-digit PIN
+* Supports Savings and Current account types
 
-### ➤ Deposit
+### Deposit
 
-* Allows deposits up to **RM50,000**
-* Requires PIN authentication
+* Add funds to active accounts
+* Maximum deposit limit: RM50,000
+* PIN authentication required
 
-### ➤ Withdraw
+### Withdraw
 
-* Prevents negative balance
-* Requires PIN authentication
+* Withdraw funds from active accounts
+* Prevents overdrafts
+* PIN authentication required
 
-### ➤ Remittance (Transfer)
+### Remittance (Transfer)
 
-* Transfer between any two accounts
-* Fee rules:
+* Transfer funds between accounts
+* Fees apply for transfers between different account types:
 
-  * Savings → Current: **2% fee**
-  * Current → Savings: **3% fee**
-  * Same type: **No fee**
+  * Savings → Current: 2% fee
+  * Current → Savings: 3% fee
+  * Same type transfers: No fee
 
-### ➤ Delete Account
+### Delete Account
 
-* Requires ID and PIN verification
-* Warns the user if balance remains
+* Remove accounts from the system
+* Requires ID verification and PIN authentication
+* Warns if account has remaining balance
 
-## Data Storage Structure
+## Data Storage
 
-```
-database/
-│── index.txt                # List of all account numbers
-│── transaction.log          # Full audit trail
-└── [account_number].txt     # Individual account files
-```
+The system uses a file-based storage structure:
+
+* `database/`: Main storage directory
+* `database/index.txt`: Index of all account numbers
+* `database/[account_number].txt`: Individual account files
+* `database/transaction.log`: Complete audit trail of all transactions
 
 ## Security Features
 
-* 4-digit PIN authentication
+* PIN authentication for all transactions
 * ID verification for account deletion
-* Max 3 PIN attempts
-* Account status tracking (Active / Closed)
-* Complete logging for auditing and debugging
+* Maximum 3 attempts for PIN entry
+* Transaction logging for audit purposes
+* Account status tracking (Active/Closed)
 
-## Sample Output
+---
+
+## Sample Output（已重新排版）
 
 ```
 ██████   █████  ███    ██ ██   ██ ██ ███    ██  ██████      ███████ ██    ██ ███████ ████████ ███████ ███    ███ 
@@ -95,20 +100,63 @@ database/
 ██   ██ ██   ██ ██  ██ ██ ██  ██  ██ ██  ██ ██ ██    ██          ██    ██         ██    ██    ██      ██  ██  ██ 
 ██████  ██   ██ ██   ████ ██   ██ ██ ██   ████  ██████      ███████    ██    ███████    ██    ███████ ██      ██ 
 
-                                      created by Skim
+                                                                                          created by Skim
 
 +==============================================+
-  Banking Management System - Session Info
+|         Banking Management System             |
+|                 Session Info                  |
 +==============================================+
-  Session Time: Sat Dec  6 16:22:54 2025
-  Total Accounts: 3
+  Session Time : Sat Dec  6 16:22:54 2025
+  Total Accounts : 3
 +==============================================+
+
++========================================+
+| 1. Deposit    | 4. Create  Account     |
+| 2. Withdraw   | 5. Delete  Account     |
+| 3. Remittance | 0. Exit  System        |
++========================================+
+Please select (number or keyword): 1
+
++==================================================================+
+| No | Account No | Name       | Balance    | Type     | Status   |
++----+------------+------------+------------+----------+----------+
+|  1 | 28165204   | 67         |   8434.00  | Savings  | Active   |
+|  2 | 88908888   | skim       |  22257.00  | Savings  | Active   |
++==================================================================+
+
+Enter account number (1-2) or 0 to enter account number directly: 1  
+Enter PIN: 1234
+
++------------------------------------------------------------------+
+| Account No | Name      | PIN  | Balance    | Type     | Status   |
+| 28165204   | 67        | 1234 |   8434.00  | Savings  | Active   |
++------------------------------------------------------------------+
+Deposit amount (Max RM50,000): RM123
+
++------------------------------------------------------------------+
+| Account No | Name      | PIN  | Balance    | Type     | Status   |
+| 28165204   | 67        | 1234 |   8557.00  | Savings  | Active   |
++------------------------------------------------------------------+
+Deposit successful!
+
++========================================+
+| 1. Deposit    | 4. Create  Account     |
+| 2. Withdraw   | 5. Delete  Account     |
+| 3. Remittance | 0. Exit  System        |
++========================================+
+Please select (number or keyword): 0
+
+==============================================
+Thank you for using Banking System. Goodbye!
+==============================================
 ```
+
+---
 
 ## Author
 
-Created by **Skim**
+Created by Skim
 
 ## License
 
-This project is created for educational purposes as part of **COMP1312 Programming 1** coursework.
+This project is for educational purposes as part of COMP1312 Programming 1 coursework.
