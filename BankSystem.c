@@ -307,14 +307,29 @@ void createAccount() {
     }
     
     // Only allow recognized account classes to avoid typos in downstream logic
+    // Use numeric selection for account type
     while(1) {
-        printf("Account type (Savings/Current): ");
-        scanf("%9s", acc.accountType);
-        if(strcmp(acc.accountType, "Savings") == 0 || 
-           strcmp(acc.accountType, "Current") == 0) {
-            break;
+        int typeChoice;
+        printf("Account type:\n");
+        printf("  1. Savings\n");
+        printf("  2. Current\n");
+        printf("Please select (1 or 2): ");
+        if(scanf("%d", &typeChoice) != 1) {
+            printf("Invalid input! Please enter 1 or 2.\n");
+            while(getchar() != '\n');
+            continue;
         }
-        printf("Invalid type! Please enter 'Savings' or 'Current'\n");
+        getchar();
+        
+        if(typeChoice == 1) {
+            strcpy(acc.accountType, "Savings");
+            break;
+        } else if(typeChoice == 2) {
+            strcpy(acc.accountType, "Current");
+            break;
+        } else {
+            printf("Invalid choice! Please enter 1 for Savings or 2 for Current.\n");
+        }
     }
     
     // Force numeric PINs with exactly four digits to simplify authentication

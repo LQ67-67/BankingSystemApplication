@@ -22,3 +22,7 @@
 [Tue Dec  2 15:38:56 2025] exit system
 [Sat Dec  6 16:23:07 2025] deposit - Account: 28165204, Amount: RM123.00
 [Sat Dec  6 16:23:30 2025] exit system
+[Mon Dec  8 11:35:57 2025] create account - Account: 5672203
+[Mon Dec  8 11:36:50 2025] deposit - Account: 5672203, Amount: RM50000.00
+[Mon Dec  8 11:37:07 2025] remittance - From: 5672203 to 88908888, Amount: RM10000.00, Fee: RM0.00
+[Mon Dec  8 11:37:35 2025] delete account - Account: 5672203
