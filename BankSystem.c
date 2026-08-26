@@ -2,14 +2,12 @@
 // Author: Skim
 // Description: A comprehensive banking system with account management, transactions, and audit logging
 
-// Standard library includes for I/O, string manipulation, memory allocation, time functions, and character handling
 #include <stdio.h> 
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <ctype.h>
 
-// Platform-specific directory creation
 #ifdef _WIN32
     #include <direct.h>
     #define mkdir(path, mode) _mkdir(path)  
@@ -17,62 +15,109 @@
     #include <sys/stat.h>
 #endif
 
-// Account structure - stores all essential account information
-// This structure represents a single bank account with all required fields
 typedef struct {
-    int accountNumber;    // Unique identifier for the account (7-9 digits)
-    char accountName[50]; // Account holder's name (max 49 characters + null terminator)
-    char pin[5];          // 4-digit PIN + null terminator for security
-    float balance;        // Current account balance in Malaysian Ringgit
-    int status;           // Account status: 0=active, 1=closed
-    char accountType[10]; // Account type: "Savings" or "Current"
-    char idNumber[20];    // Identification number for verification (min 4 chars)
+    int accountNumber;
+    char accountName[50];
+    char pin[5];
+    float balance;
+    int status;
+    char accountType[10];
+    char idNumber[20];
 } Account;
 
-// Function prototypes - declarations of all functions used in the system
-void displayAccount(Account *acc);                    // Display account details in formatted table
-int saveAccount(Account* acc);                        // Save account data to file
-Account* getAccount(int num);                         // Load account data from file
-void welcome();                                       // Display welcome banner
-void showSession();                                   // Show current session information
-void logTransaction(char* action);                    // Log transactions for audit trail
-void mainMenu();                                      // Display main menu and handle user input
-void createAccount();                                 // Create a new bank account
-void deleteAccount();                                 // Delete an existing account
-void deposit();                                       // Deposit money into an account
-void withdraw();                                      // Withdraw money from an account
-void remittance();                                    // Transfer money between accounts
-void initDatabase();                                  // Initialize database directory and files
-int listAllAccountsAndSelect(int *selectedAccountNum); // List all accounts and allow selection 
+void displayAccount(Account *acc);
+int saveAccount(Account* acc);
+Account* getAccount(int num);
+void welcome();
+void showSession();
+void logTransaction(char* action);
+void mainMenu();
+void createAccount();
+void deleteAccount();
+void deposit();
+void withdraw();
+void remittance();
+void initDatabase();
+int listAllAccountsAndSelect(int *selectedAccountNum);
 
-// Entry point: bootstrap storage, show intro, and start interactive menu
-// This is the main function that controls the program flow
-int main() {
-    // Prepare storage files, greet user, show session info, then enter menu loop
-    initDatabase();    // Ensure database directory and files exist
-    welcome();         // Display welcome banner with ASCII art
-    showSession();     // Show current session time and account count
-    mainMenu();        // Enter main menu loop for user interaction
-    
-    return 0;          // Successful program termination
+// ================= VALIDATION HELPER FUNCTIONS =================
+
+int isValidName(const char* name) {
+    if(strlen(name) < 2 || strlen(name) > 49) return 0;
+    int has_alpha = 0;
+    for(int i = 0; name[i] != '\0'; i++) {
+        if(isalpha((unsigned char)name[i])) {
+            has_alpha = 1;
+        } else if(name[i] != ' ') {
+            return 0; // Only letters and spaces allowed (no symbols)
+        }
+    }
+    return has_alpha;
 }
 
-// Ensures the backing directory/index file exist before any operations run
-// This function initializes the database structure for the banking system
+int isValidID(const char* id) {
+    int len = strlen(id);
+    if(len < 4 || len > 19) return 0;
+    for(int i = 0; id[i] != '\0'; i++) {
+        if(!isalnum((unsigned char)id[i])) return 0; // Alphanumeric only, no symbols
+    }
+    return 1;
+}
+
+int isValidPIN(const char* pin) {
+    if(strlen(pin) != 4) return 0;
+    for(int i = 0; i < 4; i++) {
+        if(!isdigit((unsigned char)pin[i])) return 0;
+    }
+    return 1;
+}
+
+int validateAmount(const char* str, float* out_amount) {
+    int dot_count = 0;
+    int decimal_digits = 0;
+    int has_digit = 0;
+    
+    for(int i = 0; str[i] != '\0'; i++) {
+        if(str[i] == '.') {
+            dot_count++;
+            if(dot_count > 1) return 0;
+            decimal_digits = 0;
+        } else if(isdigit((unsigned char)str[i])) {
+            has_digit = 1;
+            if(dot_count == 1) {
+                decimal_digits++;
+                if(decimal_digits > 2) return 0; // Max 2 decimal places
+            }
+        } else {
+            return 0; // Symbol or invalid character rejected
+        }
+    }
+    
+    if(!has_digit) return 0;
+    
+    *out_amount = atof(str);
+    return 1;
+}
+
+// ================= END VALIDATION HELPERS =================
+
+int main() {
+    initDatabase();
+    welcome();
+    showSession();
+    mainMenu();
+    return 0;
+}
+
 void initDatabase() {
-    // Create database directory with appropriate permissions
     #ifdef _WIN32
-        mkdir("database");              // Windows: simple directory creation
+        mkdir("database");
     #else
-        mkdir("database", 0700);        // Unix/Linux: with read/write/execute permissions for owner only
+        mkdir("database", 0700);
     #endif
     
-    // Ensure index.txt exists so future reads do not fail
-    // The index file tracks all account numbers for quick enumeration
     FILE *fp = fopen("database/index.txt", "a");
-    if(fp != NULL) {
-        fclose(fp);                     // Close immediately after creating/opening
-    }
+    if(fp != NULL) fclose(fp);
 }
 
 void welcome() {
@@ -82,58 +127,42 @@ void welcome() {
     printf("██████  ███████ ██ ██  ██ █████   ██ ██ ██  ██ ██   ███     ███████   ████   ███████    ██    █████   ██ ████ ██ \n");
     printf("██   ██ ██   ██ ██  ██ ██ ██  ██  ██ ██  ██ ██ ██    ██          ██    ██         ██    ██    ██      ██  ██  ██ \n");
     printf("██████  ██   ██ ██   ████ ██   ██ ██ ██   ████  ██████      ███████    ██    ███████    ██    ███████ ██      ██ \n");
-    printf("\n");
-    printf("                                                                                                  created by Skim\n");
-    printf("\n");
+    printf("\n                                                                                                  created by Skim\n\n");
 }
 
-// Displays current session time and total number of stored accounts
-// This function provides session context and system status information
 void showSession() {
-    time_t now = time(NULL);    // Get current system time
-    int count = 0;              // Counter for total accounts
-    int num;                    // Temporary variable for reading account numbers
-    FILE *fp = fopen("database/index.txt", "r");  // Open index file for reading
+    time_t now = time(NULL);
+    int count = 0, num;
+    FILE *fp = fopen("database/index.txt", "r");
     
     printf("\n+==============================================+\n");
     printf("  Banking Management System - Session Info\n");
     printf("+==============================================+\n");
-    printf("  Session Time: %s", ctime(&now));  // Display current time
+    printf("  Session Time: %s", ctime(&now));
     
     if(fp != NULL) {
-        // Count how many account numbers are recorded in the index file
-        // This gives us the total number of accounts in the system
-        while(fscanf(fp, "%d", &num) == 1)
-            count++;
-        fclose(fp);  // Always close file handles
+        while(fscanf(fp, "%d", &num) == 1) count++;
+        fclose(fp);
     }
     
     printf("  Total Accounts: %d\n", count);
-    if(count == 0)
-        printf("  Note: No accounts found. Create one to start.\n");
+    if(count == 0) printf("  Note: No accounts found. Create one to start.\n");
     printf("+==============================================+\n");
 }
 
-// Appends every significant action to a transaction log for auditing
-// This function maintains a complete audit trail of all system activities
 void logTransaction(char* action) {
-    FILE *fp = fopen("database/transaction.log", "a");  // Open log file in append mode
+    FILE *fp = fopen("database/transaction.log", "a");
     if(fp != NULL) {
-        time_t now = time(NULL);    // Get current timestamp
+        time_t now = time(NULL);
         char timeStr[100];
         strcpy(timeStr, ctime(&now));
-        timeStr[strlen(timeStr)-1] = '\0'; /*Remove newline character from ctime output*/
-        
-        // Append the action with a timestamp to the log file
-        // Format: [YYYY-MM-DD HH:MM:SS] action description
+        timeStr[strlen(timeStr)-1] = '\0';
         fprintf(fp, "[%s] %s\n", timeStr, action);
-        fclose(fp);  // Ensure log file is properly closed
+        fclose(fp);
     }
 }
 
-// Pretty-print the current state of an account in tabular form
 void displayAccount(Account *acc) {
-    // Pretty-print the current state of an account in tabular form
     char *stat = (acc->status == 0) ? "Active" : "Closed";
     printf("\n+------------------------------------------------------------------+\n");
     printf("| Account No | Name      | PIN  | Balance    | Type     | Status   |\n");
@@ -143,27 +172,18 @@ void displayAccount(Account *acc) {
     printf("+------------------------------------------------------------------+\n");
 }
 
-// Lists up to 100 accounts and lets the operator choose one interactively
 int listAllAccountsAndSelect(int *selectedAccountNum) {
     FILE *fp = fopen("database/index.txt", "r");
-    int num, count = 0;
-    int accountNumbers[100];
+    int num, count = 0, accountNumbers[100], selection;
     Account *acc;
-    int selection;
-    // Using an index file avoids scanning the whole directory on each request
     
-    if(fp == NULL) {
-        // No index file means no accounts were ever created
-        printf("No accounts found!\n");
-        return 0;
-    }
+    if(fp == NULL) { printf("No accounts found!\n"); return 0; }
     
     printf("\n+==================================================================+\n");
     printf("| No | Account No | Name       | Balance    | Type     | Status   |\n");
     printf("+----+------------+------------+------------+----------+----------+\n");
     
     while(fscanf(fp, "%d", &num) == 1 && count < 100) {
-        // Load each account so we can show its latest balance and status
         acc = getAccount(num);
         if(acc->accountNumber != 0) {
             accountNumbers[count] = acc->accountNumber;
@@ -175,17 +195,12 @@ int listAllAccountsAndSelect(int *selectedAccountNum) {
         }
         free(acc);
     }
-    
     printf("+==================================================================+\n");
     fclose(fp);
     
-    if(count == 0) {
-        printf("No accounts available.\n");
-        return 0;
-    }
+    if(count == 0) { printf("No accounts available.\n"); return 0; }
     
     while(1) {
-        // Keep asking until the operator chooses a valid account or cancels
         printf("\nEnter account number (1-%d) or 0 to enter account number directly: ", count);
         if(scanf("%d", &selection) != 1) {
             printf("Invalid input! Please enter a number.\n");
@@ -195,7 +210,6 @@ int listAllAccountsAndSelect(int *selectedAccountNum) {
         getchar();
         
         if(selection == 0) {
-            // Allow operators to type the exact account number if they know it
             printf("Enter account number: ");
             if(scanf("%d", selectedAccountNum) != 1) {
                 printf("Invalid account number!\n");
@@ -204,25 +218,20 @@ int listAllAccountsAndSelect(int *selectedAccountNum) {
             }
             getchar();
             return 1;
-        }
-        else if(selection >= 1 && selection <= count) {
+        } else if(selection >= 1 && selection <= count) {
             *selectedAccountNum = accountNumbers[selection - 1];
             return 1;
-        }
-        else {
+        } else {
             printf("Invalid selection! Please try again.\n");
         }
     }
 }
 
-// Serializes the in-memory Account struct into a flat text file
 int saveAccount(Account* acc) {
     char filename[100];
     sprintf(filename, "database/%d.txt", acc->accountNumber);
     FILE *fp = fopen(filename, "w");
-    
     if(fp != NULL) {
-        // Persist each field in a simple key/value format for easy parsing
         fprintf(fp, "Account No: %d\n", acc->accountNumber);
         fprintf(fp, "Account Name: %s\n", acc->accountName);
         fprintf(fp, "PIN: %s\n", acc->pin);
@@ -236,11 +245,9 @@ int saveAccount(Account* acc) {
     return 0;
 }
 
-// Loads an account from disk into heap memory; caller must free the result
 Account* getAccount(int num) {
     Account *acc = (Account*)malloc(sizeof(Account));
-    char filename[100];
-    char label[50];
+    char filename[100], label[50];
     sprintf(filename, "database/%d.txt", num);
     FILE *fp = fopen(filename, "r");
     
@@ -254,115 +261,83 @@ Account* getAccount(int num) {
         fscanf(fp, "%s %s %s\n", label, label, acc->idNumber);
         fclose(fp);
     } else {
-        // Signal missing account by zeroing the account number
         acc->accountNumber = 0;
     }
     return acc;
 }
 
-// Creates a brand new account with validated fields and persists it
 void createAccount() {
     Account acc;
-    int num, exists;
-    int digits;
+    int num, exists, digits;
     FILE *fp;
     char logMsg[100];
     
     srand(time(NULL));
     digits = 7 + rand() % 3;
-    
-    if(digits == 7)
-        num = 1000000 + rand() % 9000000;
-    else if(digits == 8)
-        num = 10000000 + rand() % 90000000;
-    else
-        num = 100000000 + rand() % 900000000;
-    // Randomize 7-9 digit account numbers to keep IDs unique without manual input
+    if(digits == 7) num = 1000000 + rand() % 9000000;
+    else if(digits == 8) num = 10000000 + rand() % 90000000;
+    else num = 100000000 + rand() % 900000000;
     
     fp = fopen("database/index.txt", "r");
     if(fp != NULL) {
-        // Make sure randomly chosen number not already in use
         while(fscanf(fp, "%d", &exists) == 1) {
-            if(exists == num) {
-                num++;
-                break;
-            }
+            if(exists == num) { num++; break; }
         }
         fclose(fp);
     }
-    
     acc.accountNumber = num;
     
-    printf("Enter name (max 49 chars): ");
-    scanf("%49s", acc.accountName);
-    
-    // Require ID numbers that are long enough for later verification checks
+    // FIX 1: Name validation (no symbols only, letters and spaces only)
     while(1) {
-        printf("Enter ID number (min 4 chars, max 19 chars): ");
+        printf("Enter name (max 49 chars, letters and spaces only): ");
+        int c; while((c = getchar()) != '\n' && c != EOF); // Clear buffer
+        fgets(acc.accountName, 50, stdin);
+        acc.accountName[strcspn(acc.accountName, "\n")] = '\0';
+        if(isValidName(acc.accountName)) break;
+        printf("Invalid name! Please use only letters and spaces (min 2 characters).\n");
+    }
+
+    // FIX 2: ID validation (alphanumeric only, no symbols)
+    while(1) {
+        printf("Enter ID number (min 4 chars, max 19 chars, alphanumeric only): ");
         scanf("%19s", acc.idNumber);
-        if(strlen(acc.idNumber) >= 4) {
-            break;
-        }
-        printf("ID number must be at least 4 characters!\n");
+        if(isValidID(acc.idNumber)) break;
+        printf("Invalid ID! Must be 4-19 alphanumeric characters without symbols.\n");
     }
     
-    // Only allow recognized account classes to avoid typos in downstream logic
-    // Use numeric selection for account type
     while(1) {
         int typeChoice;
-        printf("Account type:\n");
-        printf("  1. Savings\n");
-        printf("  2. Current\n");
-        printf("Please select (1 or 2): ");
+        printf("Account type:\n  1. Savings\n  2. Current\nPlease select (1 or 2): ");
         if(scanf("%d", &typeChoice) != 1) {
             printf("Invalid input! Please enter 1 or 2.\n");
             while(getchar() != '\n');
             continue;
         }
         getchar();
-        
-        if(typeChoice == 1) {
-            strcpy(acc.accountType, "Savings");
-            break;
-        } else if(typeChoice == 2) {
-            strcpy(acc.accountType, "Current");
-            break;
-        } else {
-            printf("Invalid choice! Please enter 1 for Savings or 2 for Current.\n");
-        }
+        if(typeChoice == 1) { strcpy(acc.accountType, "Savings"); break; }
+        else if(typeChoice == 2) { strcpy(acc.accountType, "Current"); break; }
+        else { printf("Invalid choice! Please enter 1 for Savings or 2 for Current.\n"); }
     }
     
-    // Force numeric PINs with exactly four digits to simplify authentication
+    // FIX 3: PIN validation (exactly 4 digits, reject >4 chars)
     while(1) {
+        char pin_input[20];
         printf("Enter 4-digit PIN: ");
-        scanf("%4s", acc.pin);
-        if(strlen(acc.pin) == 4) {
-            int valid = 1;
-            for(int i = 0; i < 4; i++) {
-                if(!isdigit(acc.pin[i])) {
-                    valid = 0;
-                    break;
-                }
-            }
-            if(valid) break;
-        }
+        scanf("%19s", pin_input);
+        if(isValidPIN(pin_input)) { strcpy(acc.pin, pin_input); break; }
         printf("PIN must be exactly 4 digits!\n");
     }
-    getchar();
     
+    int c; while((c = getchar()) != '\n' && c != EOF); // Clear buffer
+
     acc.balance = 0.00;
     acc.status = 0;
     
     if(saveAccount(&acc)) {
-        // Append new account number to index for quick listing later
         fp = fopen("database/index.txt", "a");
-        if(fp != NULL) {
-            fprintf(fp, "%d\n", acc.accountNumber);
-            fclose(fp);
-        }
+        if(fp != NULL) { fprintf(fp, "%d\n", acc.accountNumber); fclose(fp); }
         displayAccount(&acc);
         printf("Account created successfully!\n");
-        
         sprintf(logMsg, "create account - Account: %d", acc.accountNumber);
         logTransaction(logMsg);
     } else {
@@ -370,414 +345,238 @@ void createAccount() {
     }
 }
 
-// Removes an existing account after verifying ID and PIN
 void deleteAccount() {
     int num, confirm, i;
-    char pin[5], id[5], filename[100];
+    char pin_input[20], id[20], filename[100];
     char logMsg[100];
     Account *acc;
     
-    if(!listAllAccountsAndSelect(&num)) {
-        return;
-    }
-    
+    if(!listAllAccountsAndSelect(&num)) return;
     acc = getAccount(num);
-    if(acc->accountNumber == 0) {
-        printf("Account not found!\n");
-        free(acc);
-        return;
-    }
+    if(acc->accountNumber == 0) { printf("Account not found!\n"); free(acc); return; }
     
     printf("Last 4 digits of ID: ");
-    scanf("%s", id);
-    
+    scanf("%19s", id);
     int len = strlen(acc->idNumber);
-    // Compare the provided ID suffix with the stored ID for extra validation
     if(len < 4 || strcmp(&acc->idNumber[len-4], id) != 0) {
-        printf("ID verification failed!\n");
-        free(acc);
-        return;
+        printf("ID verification failed!\n"); free(acc); return;
     }
     
     for(i = 0; i < 3; i++) {
-        // Give the user up to three attempts to authenticate
         printf("Enter PIN: ");
-        scanf("%4s", pin);
-        getchar();
+        scanf("%19s", pin_input);
+        int c; while((c = getchar()) != '\n' && c != EOF);
         
-        if(strcmp(acc->pin, pin) == 0) {
+        if(isValidPIN(pin_input) && strcmp(acc->pin, pin_input) == 0) {
             displayAccount(acc);
-            
-            if(acc->balance > 0)
-                // Warn operators so they can refund customers before deletion
-                printf("Warning: Balance is RM%.2f\n", acc->balance);
-            
+            if(acc->balance > 0) printf("Warning: Balance is RM%.2f\n", acc->balance);
             printf("Confirm delete? (1=Yes/0=No): ");
-            scanf("%d", &confirm);
-            getchar();
+            scanf("%d", &confirm); getchar();
             
             if(confirm == 1) {
                 sprintf(filename, "database/%d.txt", acc->accountNumber);
                 remove(filename);
-                
                 FILE *fp1 = fopen("database/index.txt", "r");
                 FILE *fp2 = fopen("database/temp.txt", "w");
                 int tmp;
-                
                 if(fp1 != NULL && fp2 != NULL) {
-                    // Copy all other account numbers into a temp file
                     while(fscanf(fp1, "%d", &tmp) == 1) {
-                        if(tmp != num)
-                            fprintf(fp2, "%d\n", tmp);
+                        if(tmp != num) fprintf(fp2, "%d\n", tmp);
                     }
-                    fclose(fp1);
-                    fclose(fp2);
-                    // Replace original index atomically
+                    fclose(fp1); fclose(fp2);
                     remove("database/index.txt");
                     rename("database/temp.txt", "database/index.txt");
-                    
                     printf("Account deleted successfully!\n");
-                    
                     sprintf(logMsg, "delete account - Account: %d", num);
                     logTransaction(logMsg);
                 } else {
                     printf("Error updating index file!\n");
-                    if(fp1) fclose(fp1);
-                    if(fp2) fclose(fp2);
+                    if(fp1) fclose(fp1); if(fp2) fclose(fp2);
                 }
-            } else {
-                printf("Cancelled.\n");
-            }
-            free(acc);
-            return;
+            } else { printf("Cancelled.\n"); }
+            free(acc); return;
         }
-        if(i < 2)
-            printf("Wrong PIN! %d tries left.\n", 2-i);
+        if(i < 2) printf("Wrong PIN! %d tries left.\n", 2-i);
     }
-    printf("Max attempts exceeded.\n");
-    free(acc);
+    printf("Max attempts exceeded.\n"); free(acc);
 }
 
-// Adds funds to an active account after authenticating via PIN
 void deposit() {
     int num, i;
-    char pin[5];
     float amount;
     char logMsg[100];
     Account *acc;
     
-    if(!listAllAccountsAndSelect(&num)) {
-        return;
-    }
-    
+    if(!listAllAccountsAndSelect(&num)) return;
     acc = getAccount(num);
-    if(acc->accountNumber == 0) {
-        printf("Account not found!\n");
-        free(acc);
-        return;
-    }
-    
-    // Refuse deposits into closed accounts to maintain audit integrity
-    if(acc->status == 1) {
-        printf("Account closed!\n");
-        free(acc);
-        return;
-    }
+    if(acc->accountNumber == 0) { printf("Account not found!\n"); free(acc); return; }
+    if(acc->status == 1) { printf("Account closed!\n"); free(acc); return; }
     
     for(i = 0; i < 3; i++) {
         printf("Enter PIN: ");
-        scanf("%4s", pin);
-        getchar();
+        char pin_input[20];
+        scanf("%19s", pin_input);
+        int c; while((c = getchar()) != '\n' && c != EOF);
         
-        if(strcmp(acc->pin, pin) == 0) {
+        if(isValidPIN(pin_input) && strcmp(acc->pin, pin_input) == 0) {
             displayAccount(acc);
-            
             while(1) {
-                // Enforce numeric input, positive amount, and max limit
+                char amount_str[50];
                 printf("Deposit amount (Max RM50,000): RM");
-                if(scanf("%f", &amount) != 1) {
-                    printf("Invalid input! Please enter a number.\n");
-                    while(getchar() != '\n');
+                if(scanf("%49s", amount_str) != 1) {
+                    printf("Invalid input!\n"); while(getchar() != '\n'); continue;
+                }
+                // FIX 4 & 5: Validate no symbols and max 2 decimal places
+                if(!validateAmount(amount_str, &amount)) {
+                    printf("Invalid input! Please enter a valid number without symbols (max 2 decimal places).\n");
                     continue;
                 }
-                getchar();
-                
-                if(amount <= 0) {
-                    printf("Amount must be greater than RM0!\n");
-                    continue;
-                }
-                
-                if(amount > 50000) {
-                    printf("Amount exceeds maximum limit of RM50,000!\n");
-                    continue;
-                }
-                
+                if(amount <= 0) { printf("Amount must be greater than RM0!\n"); continue; }
+                if(amount > 50000) { printf("Amount exceeds maximum limit of RM50,000!\n"); continue; }
                 break;
             }
-            
-            // At this point validation passed, so we can safely credit the funds
             acc->balance += amount;
-            
-            if(!saveAccount(acc)) {
-                printf("Error: Failed to update account!\n");
-                free(acc);
-                return;
-            }
-            
+            if(!saveAccount(acc)) { printf("Error: Failed to update account!\n"); free(acc); return; }
             displayAccount(acc);
             printf("Deposit successful!\n");
-            
             sprintf(logMsg, "deposit - Account: %d, Amount: RM%.2f", num, amount);
             logTransaction(logMsg);
-            
-            free(acc);
-            return;
+            free(acc); return;
         }
-        if(i < 2)
-            printf("Wrong PIN! %d tries left.\n", 2-i);
+        if(i < 2) printf("Wrong PIN! %d tries left.\n", 2-i);
     }
-    printf("Max attempts exceeded.\n");
-    free(acc);
+    printf("Max attempts exceeded.\n"); free(acc);
 }
 
-// Deducts funds from an active account while preventing overdrafts
 void withdraw() {
     int num, i;
-    char pin[5];
     float amount;
     char logMsg[100];
     Account *acc;
     
-    if(!listAllAccountsAndSelect(&num)) {
-        return;
-    }
-    
+    if(!listAllAccountsAndSelect(&num)) return;
     acc = getAccount(num);
-    if(acc->accountNumber == 0) {
-        printf("Account not found!\n");
-        free(acc);
-        return;
-    }
-    
-    // Withdrawal cannot continue once the account is marked closed
-    if(acc->status == 1) {
-        printf("Account closed!\n");
-        free(acc);
-        return;
-    }
+    if(acc->accountNumber == 0) { printf("Account not found!\n"); free(acc); return; }
+    if(acc->status == 1) { printf("Account closed!\n"); free(acc); return; }
     
     for(i = 0; i < 3; i++) {
         printf("Enter PIN: ");
-        scanf("%4s", pin);
-        getchar();
+        char pin_input[20];
+        scanf("%19s", pin_input);
+        int c; while((c = getchar()) != '\n' && c != EOF);
         
-        if(strcmp(acc->pin, pin) == 0) {
+        if(isValidPIN(pin_input) && strcmp(acc->pin, pin_input) == 0) {
             displayAccount(acc);
             printf("Available balance: RM%.2f\n", acc->balance);
-            
             while(1) {
-                // Keep prompting until the requested amount is valid
+                char amount_str[50];
                 printf("Withdraw amount: RM");
-                if(scanf("%f", &amount) != 1) {
-                    printf("Invalid input! Please enter a number.\n");
-                    while(getchar() != '\n');
+                if(scanf("%49s", amount_str) != 1) {
+                    printf("Invalid input!\n"); while(getchar() != '\n'); continue;
+                }
+                if(!validateAmount(amount_str, &amount)) {
+                    printf("Invalid input! Please enter a valid number without symbols (max 2 decimal places).\n");
                     continue;
                 }
-                getchar();
-                
-                if(amount <= 0) {
-                    printf("Invalid amount! Must be greater than RM0.\n");
-                    continue;
-                }
-                
-                if(amount > acc->balance) {
-                    printf("Insufficient funds! Available: RM%.2f\n", acc->balance);
-                    continue;
-                }
-                
+                if(amount <= 0) { printf("Invalid amount! Must be greater than RM0.\n"); continue; }
+                if(amount > acc->balance) { printf("Insufficient funds! Available: RM%.2f\n", acc->balance); continue; }
                 break;
             }
-            
-            // Debit the balance only after confirming sufficient funds
             acc->balance -= amount;
-            
-            if(!saveAccount(acc)) {
-                printf("Error: Failed to update account!\n");
-                free(acc);
-                return;
-            }
-            
+            if(!saveAccount(acc)) { printf("Error: Failed to update account!\n"); free(acc); return; }
             displayAccount(acc);
             printf("Withdrawal successful!\n");
-            
             sprintf(logMsg, "withdrawal - Account: %d, Amount: RM%.2f", num, amount);
             logTransaction(logMsg);
-            
-            free(acc);
-            return;
+            free(acc); return;
         }
-        if(i < 2)
-            printf("Wrong PIN! %d tries left.\n", 2-i);
+        if(i < 2) printf("Wrong PIN! %d tries left.\n", 2-i);
     }
-    printf("Max attempts exceeded.\n");
-    free(acc);
+    printf("Max attempts exceeded.\n"); free(acc);
 }
 
-// Transfers funds between two accounts and applies conditional fees
 void remittance() {
     int sender, receiver, i;
-    char pin[5];
     float amount, fee = 0;
     char logMsg[200];
     Account *acc1, *acc2;
     
     printf("=== Select Sender Account ===\n");
-    if(!listAllAccountsAndSelect(&sender)) {
-        return;
-    }
-    
+    if(!listAllAccountsAndSelect(&sender)) return;
     printf("\n=== Select Receiver Account ===\n");
-    if(!listAllAccountsAndSelect(&receiver)) {
-        return;
-    }
-    
-    if(sender == receiver) {
-        // Prevent accidental self-transfers that would only consume fees
-        printf("Sender and receiver must be different!\n");
-        return;
-    }
+    if(!listAllAccountsAndSelect(&receiver)) return;
+    if(sender == receiver) { printf("Sender and receiver must be different!\n"); return; }
     
     acc1 = getAccount(sender);
     acc2 = getAccount(receiver);
-    
-    // Validate both endpoints exist on disk before moving any money
-    if(acc1->accountNumber == 0) {
-        printf("Sender account not found!\n");
-        free(acc1);
-        free(acc2);
-        return;
+    if(acc1->accountNumber == 0 || acc2->accountNumber == 0) {
+        printf("Account not found!\n"); free(acc1); free(acc2); return;
     }
-    
-    if(acc2->accountNumber == 0) {
-        printf("Receiver account not found!\n");
-        free(acc1);
-        free(acc2);
-        return;
-    }
-    
-    if(acc1->status == 1) {
-        printf("Sender account is closed!\n");
-        free(acc1);
-        free(acc2);
-        return;
-    }
-    
-    if(acc2->status == 1) {
-        printf("Receiver account is closed!\n");
-        free(acc1);
-        free(acc2);
-        return;
+    if(acc1->status == 1 || acc2->status == 1) {
+        printf("One or both accounts are closed!\n"); free(acc1); free(acc2); return;
     }
     
     for(i = 0; i < 3; i++) {
-        // Sender must pass PIN check before funds can move
         printf("Enter sender PIN: ");
-        scanf("%4s", pin);
-        getchar();
+        char pin_input[20];
+        scanf("%19s", pin_input);
+        int c; while((c = getchar()) != '\n' && c != EOF);
         
-        if(strcmp(acc1->pin, pin) == 0) {
+        if(isValidPIN(pin_input) && strcmp(acc1->pin, pin_input) == 0) {
             displayAccount(acc1);
-            
             while(1) {
-                // Validate amount and calculate any dynamic fees
+                char amount_str[50];
                 printf("\nEnter transfer amount: RM");
-                if(scanf("%f", &amount) != 1) {
-                    printf("Invalid input! Please enter a number.\n");
-                    while(getchar() != '\n');
+                if(scanf("%49s", amount_str) != 1) {
+                    printf("Invalid input!\n"); while(getchar() != '\n'); continue;
+                }
+                if(!validateAmount(amount_str, &amount)) {
+                    printf("Invalid input! Please enter a valid number without symbols (max 2 decimal places).\n");
                     continue;
                 }
-                getchar();
+                if(amount <= 0) { printf("Invalid amount! Must be greater than RM0.\n"); continue; }
                 
-                if(amount <= 0) {
-                    printf("Invalid amount! Must be greater than RM0.\n");
-                    continue;
-                }
-                
-                if(strcmp(acc1->accountType, "Savings") == 0 && 
-                   strcmp(acc2->accountType, "Current") == 0) {
-                    // Savings → Current incurs 2% fee per business rules
-                    fee = amount * 0.02;
-                    printf("Remittance fee (2%%): RM%.2f\n", fee);
-                } 
-                else if(strcmp(acc1->accountType, "Current") == 0 && 
-                        strcmp(acc2->accountType, "Savings") == 0) {
-                    // Current → Savings incurs a slightly higher 3% fee
-                    fee = amount * 0.03;
-                    printf("Remittance fee (3%%): RM%.2f\n", fee);
-                }
-                else {
-                    // Same-type transfers are free
+                if(strcmp(acc1->accountType, "Savings") == 0 && strcmp(acc2->accountType, "Current") == 0) {
+                    fee = amount * 0.02; printf("Remittance fee (2%%): RM%.2f\n", fee);
+                } else if(strcmp(acc1->accountType, "Current") == 0 && strcmp(acc2->accountType, "Savings") == 0) {
+                    fee = amount * 0.03; printf("Remittance fee (3%%): RM%.2f\n", fee);
+                } else {
                     printf("No remittance fee applied.\n");
                 }
                 
                 if(acc1->balance < amount + fee) {
                     printf("Insufficient funds! Need: RM%.2f (including fee)\n", amount + fee);
-                    printf("Available: RM%.2f\n", acc1->balance);
+                    printf("Available: RM%.2f\n", acc1->balance); // FIX 6: Was incorrectly using undefined 'acc'
                     char retry;
                     printf("Try different amount? (y/n): ");
                     scanf(" %c", &retry);
-                    getchar();
-                    if(retry == 'y' || retry == 'Y') {
-                        continue;
-                    } else {
-                        free(acc1);
-                        free(acc2);
-                        return;
-                    }
+                    while(getchar() != '\n');
+                    if(retry == 'y' || retry == 'Y') continue;
+                    else { free(acc1); free(acc2); return; }
                 }
-                
                 break;
             }
-            
             acc1->balance -= (amount + fee);
             acc2->balance += amount;
-            
             if(!saveAccount(acc1) || !saveAccount(acc2)) {
-                printf("Error: Failed to update accounts!\n");
-                free(acc1);
-                free(acc2);
-                return;
+                printf("Error: Failed to update accounts!\n"); free(acc1); free(acc2); return;
             }
-            
-            printf("\n--- Sender Account ---\n");
-            displayAccount(acc1);
-            printf("\n--- Receiver Account ---\n");
-            displayAccount(acc2);
+            printf("\n--- Sender Account ---\n"); displayAccount(acc1);
+            printf("\n--- Receiver Account ---\n"); displayAccount(acc2);
             printf("\nRemittance successful!\n");
-            
-            sprintf(logMsg, "remittance - From: %d to %d, Amount: RM%.2f, Fee: RM%.2f", 
-                    sender, receiver, amount, fee);
+            sprintf(logMsg, "remittance - From: %d to %d, Amount: RM%.2f, Fee: RM%.2f", sender, receiver, amount, fee);
             logTransaction(logMsg);
-            
-            free(acc1);
-            free(acc2);
-            return;
+            free(acc1); free(acc2); return;
         }
-        if(i < 2)
-            printf("Wrong PIN! %d tries left.\n", 2-i);
+        if(i < 2) printf("Wrong PIN! %d tries left.\n", 2-i);
     }
-    printf("Max attempts exceeded.\n");
-    free(acc1);
-    free(acc2);
+    printf("Max attempts exceeded.\n"); free(acc1); free(acc2);
 }
 
-// User input to the right operation based on menu selection
 void mainMenu() {
     char input[20];
     int c;
-    
     while(1) {
-        // Loop indefinitely until operator chooses to exit
         printf("\n+========================================+\n");
         printf("| 1. Deposit    | 4. Create  Account     |\n");
         printf("| 2. Withdraw   | 5. Delete  Account     |\n");
@@ -787,44 +586,23 @@ void mainMenu() {
         
         if(scanf("%s", input) != 1) {
             while((c = getchar()) != '\n' && c != EOF);
-            printf("==============================================\n");    
-            printf("Invalid input!\n");
+            printf("==============================================\nInvalid input!\n");
             continue;
         }
-        
         while((c = getchar()) != '\n' && c != EOF);
+        for(int i = 0; input[i]; i++) input[i] = tolower(input[i]);
         
-        // Convert to lowercase for case-insensitive comparison
-        for(int i = 0; input[i]; i++) {
-            input[i] = tolower(input[i]);
-        }
-        
-        if(strcmp(input, "1") == 0 || strcmp(input, "deposit") == 0)
-            deposit();
-        else if(strcmp(input, "2") == 0 || strcmp(input, "withdraw") == 0 || 
-                strcmp(input, "withdrawal") == 0)
-            withdraw();
-        else if(strcmp(input, "3") == 0 || strcmp(input, "remittance") == 0 || 
-                strcmp(input, "transfer") == 0)
-            remittance();
-        else if(strcmp(input, "4") == 0 || strcmp(input, "create") == 0 || 
-                strcmp(input, "new") == 0)
-            createAccount();
-        else if(strcmp(input, "5") == 0 || strcmp(input, "delete") == 0 || 
-                strcmp(input, "remove") == 0)
-            deleteAccount();
-        else if(strcmp(input, "0") == 0 || strcmp(input, "exit") == 0 || 
-                strcmp(input, "quit") == 0) {
-            printf("==============================================\n");
-            printf("Thank you for using Banking System. Goodbye!\n");
+        if(strcmp(input, "1") == 0 || strcmp(input, "deposit") == 0) deposit();
+        else if(strcmp(input, "2") == 0 || strcmp(input, "withdraw") == 0 || strcmp(input, "withdrawal") == 0) withdraw();
+        else if(strcmp(input, "3") == 0 || strcmp(input, "remittance") == 0 || strcmp(input, "transfer") == 0) remittance();
+        else if(strcmp(input, "4") == 0 || strcmp(input, "create") == 0 || strcmp(input, "new") == 0) createAccount();
+        else if(strcmp(input, "5") == 0 || strcmp(input, "delete") == 0 || strcmp(input, "remove") == 0) deleteAccount();
+        else if(strcmp(input, "0") == 0 || strcmp(input, "exit") == 0 || strcmp(input, "quit") == 0) {
+            printf("==============================================\nThank you for using Banking System. Goodbye!\n");
             logTransaction("exit system");
             exit(0);
-        }
-        else {
-            printf("==============================================\n");    
-            printf("Invalid option! Please try again.\n");
+        } else {
+            printf("==============================================\nInvalid option! Please try again.\n");
         }
     }
 }
-
-// PrayForSuccess (º̩̩́⌣º̩̩̀ʃƪ)
